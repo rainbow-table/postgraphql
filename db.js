@@ -132,30 +132,30 @@ Schedule.hasOne(Volunteer);
 
 
 //start connection
-Conn.sync({force: true})
-.then(() => {
-  Ngo.create({
-    name: 'Super fake NGO',
-    description: Faker.company.catchPhrase(),
-    profile_img: Faker.image.imageUrl(),
-    EIN: 123456789
-  }).then(() => {
-    _.times(5, () => {
-    return Volunteer.create({
-      name: `${Faker.name.firstName()} ${Faker.name.lastName()}`,
-      description: Faker.company.catchPhrase(),
-      profile_img: Faker.image.imageUrl(),
-    }).then(() => {
-    Event.create({
-      event_start: new Date(),
-      event_end: Date.now(),
-      ngo_id: 1,
-      description: Faker.company.catchPhrase()
-    });
-  });
-  });
-  }
-)
-});
+Conn.sync({force: false})
+// .then(() => {
+//   Ngo.create({
+//     name: 'Super fake NGO',
+//     description: Faker.company.catchPhrase(),
+//     profile_img: Faker.image.imageUrl(),
+//     EIN: 123456789
+//   }).then(() => {
+//     _.times(5, () => {
+//     return Volunteer.create({
+//       name: `${Faker.name.firstName()} ${Faker.name.lastName()}`,
+//       description: Faker.company.catchPhrase(),
+//       profile_img: Faker.image.imageUrl(),
+//     }).then(() => {
+//     Event.create({
+//       event_start: new Date(),
+//       event_end: Date.now(),
+//       ngo_id: 1,
+//       description: Faker.company.catchPhrase()
+//     });
+//   });
+//   });
+//   }
+// )
+// });
 
 module.exports = Conn;
