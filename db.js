@@ -1,15 +1,15 @@
 const Sequelize = require('sequelize');
 const _ = require('lodash');
-const Faker = require('Faker');
+const Faker = require('faker');
 
 //defining connection
 const Conn = new Sequelize(
-  'volunteer',
-  'postgres',
-  '',
+  process.env.DATABASE_DB,
+  process.env.DATABASE_USER,
+  process.env.DATABASE_PASSWORD,
   {
     dialect: 'postgres',
-    host: 'localhost'
+    host: process.env.DATABASE_HOST
   }
 );
 
@@ -133,29 +133,29 @@ Schedule.hasOne(Volunteer);
 
 //start connection
 Conn.sync({force: false})
-// .then(() => {
-//   Ngo.create({
-//     name: 'Super fake NGO',
-//     description: Faker.company.catchPhrase(),
-//     profile_img: Faker.image.imageUrl(),
-//     EIN: 123456789
-//   }).then(() => {
-//     _.times(5, () => {
-//     return Volunteer.create({
-//       name: `${Faker.name.firstName()} ${Faker.name.lastName()}`,
-//       description: Faker.company.catchPhrase(),
-//       profile_img: Faker.image.imageUrl(),
-//     }).then(() => {
-//     Event.create({
-//       event_start: new Date(),
-//       event_end: Date.now(),
-//       ngo_id: 1,
-//       description: Faker.company.catchPhrase()
-//     });
-//   });
-//   });
-//   }
-// )
-// });
+ .then(() => {
+   Ngo.create({
+     name: 'Super fake NGO',
+     description: Faker.company.catchPhrase(),
+     profile_img: Faker.image.imageUrl(),
+     EIN: 123456789
+   }).then(() => {
+     _.times(5, () => {
+     return Volunteer.create({
+       name: `${Faker.name.firstName()} ${Faker.name.lastName()}`,
+       description: Faker.company.catchPhrase(),
+       profile_img: Faker.image.imageUrl(),
+     }).then(() => {
+     Event.create({
+       event_start: new Date(),
+       event_end: Date.now(),
+       ngo_id: 1,
+       description: Faker.company.catchPhrase()
+     });
+   });
+   });
+   }
+ )
+ });
 
 module.exports = Conn;

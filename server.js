@@ -389,7 +389,7 @@ var app = express();
 app.use('/graphql', bodyParser.json(), graphqlExpress({schema}));
 app.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}));
 
-app.listen(4000, () => console.log('Now browse to localhost:4000/graphql'));
+app.listen(3000, () => console.log(`Now browse to localhost/3000/graphql`));
 
 
 
