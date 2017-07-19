@@ -38,6 +38,14 @@ const Volunteer = Conn.define('volunteer', {
   token: {
     type: Sequelize.STRING,
     allowNull: true
+  },
+  facebook_id: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  google_id: {
+    type: Sequelize.STRING,
+    allowNull: true
   }
 });
 
@@ -79,7 +87,15 @@ const Ngo = Conn.define('ngo', {
   token: {
     type: Sequelize.STRING,
     allowNull: true
-  }
+  },
+  facebook_id: {
+    type: Sequelize.STRING,
+    allowNull: true
+  },
+  google_id: {
+    type: Sequelize.STRING,
+    allowNull: true
+  }  
 });
 
 const Event = Conn.define('event', {

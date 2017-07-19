@@ -25,25 +25,25 @@ const Volunteer = new GraphQLObjectType({
   description: 'This describes a volunteer',
   fields: () => {
      return {
-      id:  {
+      id: {
         type: GraphQLInt,
         resolve(Volunteer) {
           return Volunteer.id;
         }
       },
-      name:  {
+      name: {
         type: GraphQLString,
         resolve(Volunteer) {
           return Volunteer.name;
         }
       },
-      description:  {
+      description: {
         type: GraphQLString,
         resolve(Volunteer) {
           return Volunteer.description;
         }
       },
-      profile_img:  {
+      profile_img: {
         type: GraphQLString,
         resolve(Volunteer) {
           return Volunteer.profile_img;
@@ -262,7 +262,7 @@ const Query = new GraphQLObjectType({
   description: 'returns volunteers',
   fields: () => {
     return {
-      volunteers: {
+      volunteer: {
         type: new GraphQLList(Volunteer),
         args: {
           id: {type: new GraphQLList(GraphQLInt), default: 1},
@@ -275,7 +275,7 @@ const Query = new GraphQLObjectType({
           return db.models.volunteer.findAll({where: args});
         }
       },
-      badges: {
+      badge: {
         type: new GraphQLList(Badges),
         resolve(root, args) {
           return db.models.badges.findAll({where: args});
@@ -334,51 +334,124 @@ const Mutations = new GraphQLObjectType({
   fields: () => {
     return {
       volunteer: {
-        type: new GraphQLList(Volunteer),
+        type: new GraphQLObjectType({
+          name: 'new_volunteer',
+          fields: () => ({
+            id: {type: GraphQLInt},
+            name: {type: GraphQLString},
+            description: {type: GraphQLString},
+            profile_img: {type: GraphQLString},
+            username: {type: GraphQLString},
+            email: {type: GraphQLString},
+            token: {type: GraphQLString}
+          })
+        }),
         args: {
-            name: { type: new GraphQLNonNull(GraphQLString) },
-            description: { type: new GraphQLNonNull(GraphQLString) },
-            profile_img: { type: new GraphQLNonNull(GraphQLString) }
+          action: {type: GraphQLString},
+          name: { type: new GraphQLNonNull(GraphQLString) },
+          description: {type: GraphQLString},
+          profile_img: {type: GraphQLString}
         },
-        resolve(root, input) {
-          return db.models.volunteer.create({name: input.name, description: input.description, profile_img: input.profile_img})
+        resolve(root, input, ast) {
+          if (input.action === 'delete') {
+            return db.models.volunteer.destroy({where: {name: input.name}})
+          } else if (input.action === 'update') {
+            return db.models.volunteer.findOne({name: input.name}).then((obj)=> obj.update({description: input.description, profile_img: input.profile_img}))
+          } else {
+            return db.models.volunteer.create({name: input.name, description: input.description, profile_img: input.profile_img})
+          }
         }
       },
+
       ngo: {
-        type: new GraphQLList(Ngo),
+        type: new GraphQLObjectType({
+          name: 'new_ngo',
+          fields: () => ({
+            id: {type: GraphQLInt},
+            name: {type: GraphQLString},
+            description: {type: GraphQLString},
+            profile_img: {type: GraphQLString},
+            background_img: {type: GraphQLString},
+            username: {type: GraphQLString},
+            email: {type: GraphQLString},
+            token: {type: GraphQLString},
+            EIN: {type: GraphQLInt},
+          })
+        }),
         args: {
-            name: { type: new GraphQLNonNull(GraphQLString) },
-            description: { type: new GraphQLNonNull(GraphQLString) },
-            profile_img: { type: new GraphQLNonNull(GraphQLString) },
-            background_img: { type: new GraphQLNonNull(GraphQLString)},
-            ein: { type: new GraphQLNonNull(GraphQLInt)}
+          action: {type: GraphQLString},          
+          name: {type: new GraphQLNonNull(GraphQLString) },
+          description: {type: GraphQLString},
+          profile_img: {type: GraphQLString},
+          background_img: {type: GraphQLString},
+          ein: {type: GraphQLInt}
         },
         resolve(root, input) {
-          return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein})
+          if (input.action === 'delete') {
+            return db.models.ngo.destroy({where: {name: input.name}})
+          } else if (input.action === 'update') {
+            return db.models.ngo.findOne({name: input.name}).then((obj) => obj.update({description: input.description, profile_img: input.profile_img, background_img: input.background_img}))
+          } else {
+            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein})
+          }
         }     
       },
-      events: {
-        type: new GraphQLList(Event),
+      event: {
+        type: new GraphQLObjectType({
+          name: 'new_event',
+          fields: () => ({
+            id: {type: GraphQLInt},
+            event_start: {type: GraphQLInt},
+            event_end: {type: GraphQLString},
+            description: {type: GraphQLString},
+            ngo_id: {type: GraphQLInt},
+          })
+        }),
         args: {
-            event_start: { type: new GraphQLNonNull(GraphQLString) },
-            event_end: { type: new GraphQLNonNull(GraphQLString) },
-            ngo_id: { type: new GraphQLNonNull(GraphQLInt) },
-            description: { type: new GraphQLNonNull(GraphQLString)},
+          action: {type: GraphQLString},
+          id: {type: GraphQLInt},
+          event_start: {type: GraphQLString},
+          event_end: {type: GraphQLString},
+          ngo_id: {type: GraphQLInt},
+          description: {type: GraphQLString},
         },
         resolve(root, input) {
-          return db.models.event.create({event_start: input.event_start, event_end: input.event_end, ngo_id: input.ngo_id, description: input.description})
+          if (input.action === 'delete') {
+            return db.models.event.destroy({where: {id: input.id}})
+          } else if (input.action === 'update') {
+            return db.models.event.findOne({id: input.id}).then((obj) => obj.update({event_start: input.event_start, event_end: input.event_end, description: input.description, ngo_id: input.ngo_id}))
+          } else {
+            return db.models.event.create({event_start: input.event_start, event_end: input.event_end, ngo_id: input.ngo_id, description: input.description})
+          }
         }     
       },
       schedule: {
-        type: new GraphQLList(Schedule),
+        type: new GraphQLObjectType({
+          name: 'new_schedule',
+          fields: () => ({
+            id: {type: GraphQLInt},
+            volunteer_start: {type: GraphQLInt},
+            volunteer_end: {type: GraphQLString},
+            event_id: {type: GraphQLInt},
+            volunteer_id: {type: GraphQLInt},
+          })
+        }),
         args: {
-            volunteer_start: { type: new GraphQLNonNull(GraphQLString) },
-            volunteer_end: { type: new GraphQLNonNull(GraphQLString) },
-            event_id: { type: new GraphQLNonNull(GraphQLInt) },
-            volunteer_id: { type: new GraphQLNonNull(GraphQLInt)},
+          action: {type: GraphQLString},
+          id: {type: GraphQLInt},
+          volunteer_start: {type: GraphQLString},
+          volunteer_end: {type: GraphQLString},
+          event_id: {type: GraphQLInt},
+          volunteer_id: {type: GraphQLInt},
         },
         resolve(root, input) {
-          return db.models.schedule.create({volunteer_start: input.volunteer_start, volunteer_end: volunteer.event_end, event_id: input.event_id, volunteer_id: input.volunteer_id})
+          if (input.action === 'delete') {
+            return db.models.schedule.destroy({where: {id: input.id}})
+          } else if (input.action === 'update') {
+            return db.models.schedule.findOne({id: input.id}).then(obj => obj.update({volunteer_start: input.volunteer_start, volunteer_end: input.volunteer_end, volunteer_id: input.volunteer_id, event_id: input.event_id}))
+          } else {
+            return db.models.schedule.create({volunteer_start: input.volunteer_start, volunteer_end: volunteer.event_end, event_id: input.event_id, volunteer_id: input.volunteer_id})
+          }
         }     
       }
     }
@@ -411,6 +484,17 @@ app.use(passport.session());
 app.listen(PORT, () => console.log(`Now browse to localhost/${PORT}/graphql`));
 
 
+passport.serializeUser(function(user, done) {
+  done(null, user[0].dataValues.id);
+});
+passport.deserializeUser(function(id, done) {
+  db.models.volunteer.findById(id).then(user => {
+    done(null, user)
+  }).catch(err => {
+    done(err, null);
+  })
+})
+
 passport.use(new FacebookStrategy({
   clientID: appId,
   clientSecret: appSecret,
@@ -418,10 +502,13 @@ passport.use(new FacebookStrategy({
 },
 
   function(accessToken, refreshToken, profile, done) {
-    db.models.volunteer.findOrCreate({where:{ 'facebook.id': profile.id }}, function(err, user) {
-      if (err) { return done(err); }
-      done(null, user);
-    });
+    db.models.volunteer.findOrCreate({where: {facebook_id: profile.id}, defaults:{name: profile.displayName}}).then(user => {
+      done(null, user);      
+      }
+    ).catch(err => {
+      return done(err); 
+    })
+      
   },
 ));
 
