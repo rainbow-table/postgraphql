@@ -132,7 +132,7 @@ Schedule.hasOne(Volunteer);
 
 
 //start connection
-Conn.sync({force: false})
+Conn.sync({force: true})
  .then(() => {
    Ngo.create({
      name: 'Super fake NGO',
