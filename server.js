@@ -8,7 +8,7 @@ const passport = require('passport'),
   require('dotenv').config();
 
 const { graphqlExpress, graphiqlExpress } = require('graphql-server-express');
-
+const cors = require('cors')
 const graphql = require('graphql');
 const GraphQLObjectType = graphql.GraphQLObjectType;
 const GraphQLInt = graphql.GraphQLInt;
@@ -150,7 +150,13 @@ const Ngo = new GraphQLObjectType({
         resolve(Volunteer) {
           return Volunteer.token;
         }
-      }      
+      },
+      ngo_address: {
+        type: GraphQLString,
+        resolve(Volunteer) {
+          return Volunteer.ngo_address
+        }
+      }
     };
   }
 });
@@ -249,6 +255,12 @@ const Event = new GraphQLObjectType({
         resolve(Event) {
           return Event.event_end;
         }
+      },
+      event_address: {
+        type: GraphQLString,
+        resolve(Event) {
+          return Event.event_address;
+        }
       }
     };
   }
@@ -289,7 +301,8 @@ const Query = new GraphQLObjectType({
           username: {type: new GraphQLList(GraphQLString)},
           email: {type: new GraphQLList(GraphQLString)},
           token: {type: new GraphQLList(GraphQLString)},
-          EIN: {type: new GraphQLList(GraphQLString)},       
+          EIN: {type: new GraphQLList(GraphQLString)},
+          ngo_address: {type: new GraphQLList(GraphQLString)},      
         },        
         resolve(root, args) {
           return db.models.ngo.findAll({where: args});
@@ -376,6 +389,7 @@ const Mutations = new GraphQLObjectType({
             email: {type: GraphQLString},
             token: {type: GraphQLString},
             EIN: {type: GraphQLInt},
+            ngo_address: {type: GraphQLString},
           })
         }),
         args: {
@@ -384,15 +398,16 @@ const Mutations = new GraphQLObjectType({
           description: {type: GraphQLString},
           profile_img: {type: GraphQLString},
           background_img: {type: GraphQLString},
-          ein: {type: GraphQLInt}
+          ein: {type: GraphQLInt},
+          ngo_address: {type: GraphQLString},
         },
         resolve(root, input) {
           if (input.action === 'delete') {
             return db.models.ngo.destroy({where: {name: input.name}})
           } else if (input.action === 'update') {
-            return db.models.ngo.findOne({name: input.name}).then((obj) => obj.update({description: input.description, profile_img: input.profile_img, background_img: input.background_img}))
+            return db.models.ngo.findOne({name: input.name}).then((obj) => obj.update({description: input.description, profile_img: input.profile_img, background_img: input.background_img, ngo_address: input.ngo_address}))
           } else {
-            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein})
+            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein, ngo_address: input.ngo_address})
           }
         }     
       },
@@ -401,10 +416,11 @@ const Mutations = new GraphQLObjectType({
           name: 'new_event',
           fields: () => ({
             id: {type: GraphQLInt},
-            event_start: {type: GraphQLInt},
+            event_start: {type: GraphQLString},
             event_end: {type: GraphQLString},
             description: {type: GraphQLString},
             ngo_id: {type: GraphQLInt},
+            event_address: {type: GraphQLString},
           })
         }),
         args: {
@@ -414,14 +430,15 @@ const Mutations = new GraphQLObjectType({
           event_end: {type: GraphQLString},
           ngo_id: {type: GraphQLInt},
           description: {type: GraphQLString},
+          event_address: {type: GraphQLString},
         },
         resolve(root, input) {
           if (input.action === 'delete') {
             return db.models.event.destroy({where: {id: input.id}})
           } else if (input.action === 'update') {
-            return db.models.event.findOne({id: input.id}).then((obj) => obj.update({event_start: input.event_start, event_end: input.event_end, description: input.description, ngo_id: input.ngo_id}))
+            return db.models.event.findOne({id: input.id}).then((obj) => obj.update({event_start: input.event_start, event_end: input.event_end, description: input.description, ngo_id: input.ngo_id, event_address: input.event_address}))
           } else {
-            return db.models.event.create({event_start: input.event_start, event_end: input.event_end, ngo_id: input.ngo_id, description: input.description})
+            return db.models.event.create({event_start: input.event_start, event_end: input.event_end, ngo_id: input.ngo_id, description: input.description, event_address: input.event_address})
           }
         }     
       },
@@ -430,7 +447,7 @@ const Mutations = new GraphQLObjectType({
           name: 'new_schedule',
           fields: () => ({
             id: {type: GraphQLInt},
-            volunteer_start: {type: GraphQLInt},
+            volunteer_start: {type: GraphQLString},
             volunteer_end: {type: GraphQLString},
             event_id: {type: GraphQLInt},
             volunteer_id: {type: GraphQLInt},
@@ -472,70 +489,71 @@ const appSecret = process.env.FACEBOOK_APP_SECRET;
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const PORT = process.env.PORT;
+app.use(cors())
 
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/graphql', bodyParser.json(), graphqlExpress({schema}));
 app.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}));
-app.use(cookieParser());
-app.use(session({ secret: mySecret }));
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(cookieParser());
+// app.use(session({ secret: mySecret }));
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 app.listen(PORT, () => console.log(`Now browse to localhost/${PORT}/graphql`));
 
 
-passport.serializeUser(function(user, done) {
-  done(null, user[0].dataValues.id);
-});
-passport.deserializeUser(function(id, done) {
-  db.models.volunteer.findById(id).then(user => {
-    done(null, user)
-  }).catch(err => {
-    done(err, null);
-  })
-})
+// passport.serializeUser(function(user, done) {
+//   done(null, user[0].dataValues.id);
+// });
+// passport.deserializeUser(function(id, done) {
+//   db.models.volunteer.findById(id).then(user => {
+//     done(null, user)
+//   }).catch(err => {
+//     done(err, null);
+//   })
+// })
 
-passport.use(new FacebookStrategy({
-  clientID: appId,
-  clientSecret: appSecret,
-  callbackURL: `http://localhost:3000/auth/facebook/callback`,
-},
+// passport.use(new FacebookStrategy({
+//   clientID: appId,
+//   clientSecret: appSecret,
+//   callbackURL: `http://localhost:3000/auth/facebook/callback`,
+// },
 
-  function(accessToken, refreshToken, profile, done) {
-    db.models.volunteer.findOrCreate({where: {facebook_id: profile.id}, defaults:{name: profile.displayName}}).then(user => {
-      done(null, user);      
-      }
-    ).catch(err => {
-      return done(err); 
-    })
+//   function(accessToken, refreshToken, profile, done) {
+//     db.models.volunteer.findOrCreate({where: {facebook_id: profile.id}, defaults:{name: profile.displayName}}).then(user => {
+//       done(null, user);      
+//       }
+//     ).catch(err => {
+//       return done(err); 
+//     })
       
-  },
-));
+//   },
+// ));
 
-app.get('/auth/facebook', passport.authenticate('facebook'))
-app.get('/auth/facebook/callback',
-  passport.authenticate('facebook', { 
-    successRedirect: '/',
-    failureRedirect: '/login' }));
+// app.get('/auth/facebook', passport.authenticate('facebook'))
+// app.get('/auth/facebook/callback',
+//   passport.authenticate('facebook', { 
+//     successRedirect: '/',
+//     failureRedirect: '/login' }));
 
-passport.use(new GoogleStrategy({
-    clientID: GOOGLE_CLIENT_ID,
-    clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: `http://localhost:3000/auth/google/callback`
-  },
-  function(accessToken, refreshToken, profile, done) {
-    User.findOrCreate({ googleId: profile.id }, function (err, user) {
-      return done(err, user);
-    });
-  } 
-));
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
-  app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  function(req, res) {
-    res.redirect('/');
-  });
+// passport.use(new GoogleStrategy({
+//     clientID: GOOGLE_CLIENT_ID,
+//     clientSecret: GOOGLE_CLIENT_SECRET,
+//     callbackURL: `http://localhost:3000/auth/google/callback`
+//   },
+//   function(accessToken, refreshToken, profile, done) {
+//     User.findOrCreate({ googleId: profile.id }, function (err, user) {
+//       return done(err, user);
+//     });
+//   } 
+// ));
+// app.get('/auth/google',
+//   passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
+//   app.get('/auth/google/callback', 
+//   passport.authenticate('google', { failureRedirect: '/login' }),
+//   function(req, res) {
+//     res.redirect('/');
+//   });
 
 
 

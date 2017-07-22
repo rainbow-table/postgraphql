@@ -95,7 +95,11 @@ const Ngo = Conn.define('ngo', {
   google_id: {
     type: Sequelize.STRING,
     allowNull: true
-  }  
+  },
+  ngo_address: {
+    type: Sequelize.STRING,
+    allowNull: true
+  }
 });
 
 const Event = Conn.define('event', {
@@ -114,6 +118,10 @@ const Event = Conn.define('event', {
   description: {
     type: Sequelize.STRING,
     allowNul: false
+  },
+  event_address: {
+    type: Sequelize.STRING,
+    allowNul: true
   }
 });
 
@@ -154,7 +162,8 @@ Conn.sync({force: true})
      name: 'Super fake NGO',
      description: Faker.company.catchPhrase(),
      profile_img: Faker.image.imageUrl(),
-     EIN: 123456789
+     EIN: 123456789,
+     ngo_address: `${Faker.address.streetAddress()}, new orleans, la`,
    }).then(() => {
      _.times(5, () => {
      return Volunteer.create({
@@ -162,11 +171,14 @@ Conn.sync({force: true})
        description: Faker.company.catchPhrase(),
        profile_img: Faker.image.imageUrl(),
      }).then(() => {
+      let date = Faker.date.between('2017-07-01', '2017-08-01');
+      let time = 8;
      Event.create({
-       event_start: new Date(),
-       event_end: Date.now(),
+       event_start: date,
+       event_end: date,
        ngo_id: 1,
-       description: Faker.company.catchPhrase()
+       description: Faker.company.catchPhrase(),
+       event_address: `${Faker.address.streetAddress()}, new orleans, la`,
      });
    });
    });
