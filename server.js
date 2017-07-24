@@ -400,6 +400,7 @@ const Mutations = new GraphQLObjectType({
           background_img: {type: GraphQLString},
           ein: {type: GraphQLInt},
           ngo_address: {type: GraphQLString},
+          email: {type: GraphQLString},
         },
         resolve(root, input) {
           if (input.action === 'delete') {
@@ -407,7 +408,7 @@ const Mutations = new GraphQLObjectType({
           } else if (input.action === 'update') {
             return db.models.ngo.findOne({name: input.name}).then((obj) => obj.update({description: input.description, profile_img: input.profile_img, background_img: input.background_img, ngo_address: input.ngo_address}))
           } else {
-            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein, ngo_address: input.ngo_address})
+            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein, ngo_address: input.ngo_address, email: input.email})
           }
         }     
       },
