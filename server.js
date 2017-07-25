@@ -61,10 +61,10 @@ const Volunteer = new GraphQLObjectType({
           return Volunteer.token;
         }
       },
-      token: {
+      facebook_id: {
         type: GraphQLString,
         resolve(Volunteer) {
-          return Volunteer.token;
+          return Volunteer.facebook_id;
         }
       }
     };
@@ -145,18 +145,24 @@ const Ngo = new GraphQLObjectType({
           return Volunteer.token;
         }
       },
-      token: {
+      facebook_id: {
         type: GraphQLString,
         resolve(Volunteer) {
-          return Volunteer.token;
+          return Volunteer.facebook_id;
         }
       },
       ngo_address: {
         type: GraphQLString,
         resolve(Volunteer) {
-          return Volunteer.ngo_address
+          return Volunteer.ngo_address;
         }
-      }
+      },
+      type: {
+        type: GraphQLString,
+        resolve(Volunteer) {
+          return Volunteer.type;
+        }
+      }      
     };
   }
 });
@@ -281,7 +287,7 @@ const Query = new GraphQLObjectType({
           name: {type: new GraphQLList(GraphQLString)},
           username: {type: new GraphQLList(GraphQLString)},
           email: {type: new GraphQLList(GraphQLString)},
-          token: {type: new GraphQLList(GraphQLString)},
+          facebook_id: {type: new GraphQLList(GraphQLString)},
         },
         resolve(root, args) {
           return db.models.volunteer.findAll({where: args});
@@ -300,9 +306,10 @@ const Query = new GraphQLObjectType({
           name: {type: new GraphQLList(GraphQLString)},
           username: {type: new GraphQLList(GraphQLString)},
           email: {type: new GraphQLList(GraphQLString)},
-          token: {type: new GraphQLList(GraphQLString)},
+          facebook_id: {type: new GraphQLList(GraphQLString)},
           EIN: {type: new GraphQLList(GraphQLString)},
-          ngo_address: {type: new GraphQLList(GraphQLString)},      
+          ngo_address: {type: new GraphQLList(GraphQLString)},
+          type: {type: new GraphQLList(GraphQLString)},      
         },        
         resolve(root, args) {
           return db.models.ngo.findAll({where: args});
@@ -356,22 +363,24 @@ const Mutations = new GraphQLObjectType({
             profile_img: {type: GraphQLString},
             username: {type: GraphQLString},
             email: {type: GraphQLString},
-            token: {type: GraphQLString}
+            facebook_id: {type: GraphQLInt}
           })
         }),
         args: {
           action: {type: GraphQLString},
           name: { type: new GraphQLNonNull(GraphQLString) },
           description: {type: GraphQLString},
-          profile_img: {type: GraphQLString}
+          profile_img: {type: GraphQLString},
+          email: {type: GraphQLString},
+          facebook_id: {type: GraphQLInt},
         },
         resolve(root, input, ast) {
           if (input.action === 'delete') {
             return db.models.volunteer.destroy({where: {name: input.name}})
           } else if (input.action === 'update') {
-            return db.models.volunteer.findOne({name: input.name}).then((obj)=> obj.update({description: input.description, profile_img: input.profile_img}))
+            return db.models.volunteer.findOne({name: input.name}).then((obj)=> obj.update({description: input.description, profile_img: input.profile_img, facebook_id: input.facebook_id, email: input.email}))
           } else {
-            return db.models.volunteer.create({name: input.name, description: input.description, profile_img: input.profile_img})
+            return db.models.volunteer.create({name: input.name, description: input.description, profile_img: input.profile_img, facebook_id: input.facebook_id, email: input.email})
           }
         }
       },
@@ -387,9 +396,10 @@ const Mutations = new GraphQLObjectType({
             background_img: {type: GraphQLString},
             username: {type: GraphQLString},
             email: {type: GraphQLString},
-            token: {type: GraphQLString},
+            facebook_id: {type: GraphQLInt},
             EIN: {type: GraphQLInt},
             ngo_address: {type: GraphQLString},
+            type: {type: GraphQLString},
           })
         }),
         args: {
@@ -401,14 +411,16 @@ const Mutations = new GraphQLObjectType({
           ein: {type: GraphQLInt},
           ngo_address: {type: GraphQLString},
           email: {type: GraphQLString},
+          facebook_id: {type: GraphQLInt},
+          type: {type: GraphQLString}
         },
         resolve(root, input) {
           if (input.action === 'delete') {
             return db.models.ngo.destroy({where: {name: input.name}})
           } else if (input.action === 'update') {
-            return db.models.ngo.findOne({name: input.name}).then((obj) => obj.update({description: input.description, profile_img: input.profile_img, background_img: input.background_img, ngo_address: input.ngo_address}))
+            return db.models.ngo.findOne({name: input.name}).then((obj) => obj.update({description: input.description, profile_img: input.profile_img, background_img: input.background_img, ngo_address: input.ngo_address, facebook_id: input.facebook_id, type: input.type}))
           } else {
-            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein, ngo_address: input.ngo_address, email: input.email})
+            return db.models.ngo.create({name: input.name, description: input.description, profile_img: input.profile_img, background_img: input.background_img, ein: input.ein, ngo_address: input.ngo_address, email: input.email, facebook_id: input.facebook_id, type: input.type})
           }
         }     
       },

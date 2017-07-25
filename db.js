@@ -40,7 +40,7 @@ const Volunteer = Conn.define('volunteer', {
     allowNull: true
   },
   facebook_id: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: true
   },
   google_id: {
@@ -89,7 +89,7 @@ const Ngo = Conn.define('ngo', {
     allowNull: true
   },
   facebook_id: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: true
   },
   google_id: {
@@ -99,7 +99,11 @@ const Ngo = Conn.define('ngo', {
   ngo_address: {
     type: Sequelize.STRING,
     allowNull: true
-  }
+  },
+  type: {
+    type: Sequelize.STRING,
+    allowNull: true
+  }  
 });
 
 const Event = Conn.define('event', {
@@ -164,6 +168,7 @@ Conn.sync({force: true})
      profile_img: Faker.image.imageUrl(),
      EIN: 123456789,
      ngo_address: `${Faker.address.streetAddress()}, new orleans, la`,
+     type: 'environmental'
    }).then(() => {
      _.times(5, () => {
      return Volunteer.create({
